@@ -5,10 +5,10 @@ from botocore.config import Config
 import boto3
 from decouple import config
 
-ACCESS_KEY = config('ACCESS_KEY')
-SECRET_KEY = config('SECRET_KEY')
-REGION_NAME = config('REGION_NAME')
-BUCKET_NAME = config("BUCKET_NAME")
+# ACCESS_KEY = config('ACCESS_KEY')
+# SECRET_KEY = config('SECRET_KEY')
+# REGION_NAME = config('REGION_NAME')
+# BUCKET_NAME = config("BUCKET_NAME")
 FILE_PATH = "big_laz/"
 
 def breakLazFile(local_file_path, save_folder_name):
@@ -51,10 +51,11 @@ def breakLazFile(local_file_path, save_folder_name):
         os.remove(file_path)
     os.remove(local_file_path)
 
-def downloadS3File(object_url):
+def downloadS3File(object_url,bucket_data):
+
     
     my_config = Config(
-                    region_name = REGION_NAME,
+                    region_name = bucket_data[0]["region"],
                     signature_version = 'v4',
                     retries = {
                         'max_attempts': 10,
@@ -72,10 +73,10 @@ def downloadS3File(object_url):
     object_name = '/'.join(split_laz_url[-3:])
     print(f"object key: {object_name}")
     
-    client = boto3.client('s3', config=my_config,aws_access_key_id=ACCESS_KEY,aws_secret_access_key=SECRET_KEY)
+    client = boto3.client('s3', config=my_config,aws_access_key_id=bucket_data[0]["access_key_id"],aws_secret_access_key=bucket_data[0]["secret_key"])
     print(f"--------------------Laz file <{split_laz_url[-1]}> is Downloading------------------------------")
     start = time.time()
-    client.download_file(BUCKET_NAME, object_name, local_file_name)
+    client.download_file(bucket_data[0]["name"], object_name, local_file_name)
     end = time.time()
     print(f"laz file has downloaded in {end-start} seconds")
     breakLazFile(local_file_name,"small_laz")
