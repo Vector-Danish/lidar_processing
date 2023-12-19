@@ -63,7 +63,7 @@ def downloadS3File(object_url):
                 )
     
     # print("objet url------------------",object_url)
-    print(type(object_url))
+    # print(type(object_url))
     split_laz_url = object_url.split('/')
     print(split_laz_url)
     local_file_name = f"{FILE_PATH}"+split_laz_url[-1]

@@ -26,16 +26,20 @@ def main():
         database=database
     )
 
-    lidar_data_id = 1
-  
+    # Read lidar_data_id from data.json
+    with open('data.json', 'r') as json_file:
+        data = json.load(json_file)
+        lidar_data_id = int(data.get('tour_id'))
+    
     cursor = connection.cursor()
     update_query = "UPDATE lidar_data SET status = 'inprogress' WHERE id = %s"
     cursor.execute(update_query, (lidar_data_id,))
     connection.commit()
 
     # Fetch lidar_data from lidar_chunks based on id
-    cursor.execute("SELECT lidar_chunks.lidar_data FROM lidar_chunks WHERE lidar_chunks.lidar_id = %s", (lidar_data_id,))
+    cursor.execute("SELECT lidar_chunks.lidar_data, FROM lidar_chunks WHERE lidar_chunks.lidar_id = %s", (lidar_data_id,))
     lidar_chunks_data = cursor.fetchall()
+    print
     # print("lidar chunk data",lidar_chunks_data)
 
     # Close the cursor and connection
