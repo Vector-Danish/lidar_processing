@@ -11,7 +11,17 @@ from decouple import config
 # BUCKET_NAME = config("BUCKET_NAME")
 FILE_PATH = "big_laz/"
 
-def breakLazFile(local_file_path, save_folder_name):
+def breakLazFile(local_file_path, save_folder_name,bucket_data,lidar_salt):
+    my_config = Config(
+                    region_name = bucket_data[0]["region"],
+                    signature_version = 'v4',
+                    retries = {
+                        'max_attempts': 10,
+                        'mode': 'standard'
+                    }
+                )
+    client = boto3.client('s3', config=my_config,aws_access_key_id=bucket_data[0]["access_key_id"],aws_secret_access_key=bucket_data[0]["secret_key"])
+     
     if not os.path.exists(save_folder_name):
         os.makedirs(save_folder_name)
         print(f"Directory {save_folder_name} created.")
@@ -35,10 +45,13 @@ def breakLazFile(local_file_path, save_folder_name):
             data.green = laz.green
             data.blue = laz.blue
 
-            filename = f"{INCREMENT}.laz"
+            filename = f"{local_file_path.split('/')[-1].split('.')[0]}_{INCREMENT}.laz"
+            print(filename)
 
             laz_name = filename
             data.write(os.path.join(save_folder_name, laz_name))
+            chunk_file_path = f"{save_folder_name}/{filename}"
+            client.upload_file(chunk_file_path, bucket_data[0]["name"], lidar_salt)
 
             INCREMENT += 1
 
@@ -51,7 +64,7 @@ def breakLazFile(local_file_path, save_folder_name):
         os.remove(file_path)
     os.remove(local_file_path)
 
-def downloadS3File(object_url,bucket_data):
+def downloadS3File(object_url,bucket_data, lidar_salt):
 
     
     my_config = Config(
@@ -79,7 +92,7 @@ def downloadS3File(object_url,bucket_data):
     client.download_file(bucket_data[0]["name"], object_name, local_file_name)
     end = time.time()
     print(f"laz file has downloaded in {end-start} seconds")
-    breakLazFile(local_file_name,"small_laz")
+    breakLazFile(local_file_name,"small_laz",bucket_data,lidar_salt)
 
 # async def async_downloadS3File(object_url):
 #     loop = asyncio.get_event_loop()

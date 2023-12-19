@@ -5,15 +5,17 @@ import scripty
 import json
 
 deserialized_bucket = None
+lidar_salt = None
 
 def process_lidar_file(lidar_file_tuple, shared_list):
     lidar_file = lidar_file_tuple[0]
     print(f"Processing lidar file: {lidar_file}")
-    scripty.downloadS3File(lidar_file, deserialized_bucket)
+    scripty.downloadS3File(lidar_file, deserialized_bucket, lidar_salt)
     shared_list.append(lidar_file)
 
 def main():
     global deserialized_bucket
+    global lidar_salt
 
     host = config('DB_HOST')
     port = config('DB_PORT')
@@ -40,11 +42,12 @@ def main():
     cursor.execute(update_query, (lidar_data_id,))
     connection.commit()
 
-    cursor.execute("SELECT lidar_data.bucket, lidar_data.id FROM lidar_data WHERE lidar_data.uuid = %s", (lidar_data_id,))
+    cursor.execute("SELECT lidar_data.bucket, lidar_data.salt, lidar_data.id FROM lidar_data WHERE lidar_data.uuid = %s", (lidar_data_id,))
     bucket_data = cursor.fetchall()
     print("bucket data and lidar_id---------------------------------", bucket_data[0])
     lidar_id = bucket_data[0][-1]
-    print("lidar id --------------------------", lidar_id)
+    lidar_salt = bucket_data[0][-2]
+    # print("lidar id --------------------------", lidar_id)
 
     # bucket data and convert it into list 
     bucket_data_strings = [row[0] for row in bucket_data]
@@ -53,10 +56,16 @@ def main():
    
     # print("bucket name in data----------------------------",lidar_data_strings)
 
+    update_query = "UPDATE lidar_chunks SET status = 'inprogress' WHERE lidar_chunks.lidar_id = %s"
+    cursor.execute(update_query, (lidar_id,))
+    connection.commit()
+
     # Fetch lidar_data from lidar_chunks based on id
     cursor.execute("SELECT lidar_chunks.lidar_data FROM lidar_chunks WHERE lidar_chunks.lidar_id = %s", (lidar_id,))
     lidar_chunks_data = cursor.fetchall()
     # print("lidar chunk data",lidar_chunks_data)   
+
+
     cursor.close()
     connection.close()
 
