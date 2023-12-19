@@ -5,10 +5,6 @@ from botocore.config import Config
 import boto3
 from decouple import config
 
-# ACCESS_KEY = config('ACCESS_KEY')
-# SECRET_KEY = config('SECRET_KEY')
-# REGION_NAME = config('REGION_NAME')
-# BUCKET_NAME = config("BUCKET_NAME")
 laz_file_path = config("FILE_PATH")
 FILE_PATH = "big_laz/"
 
