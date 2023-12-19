@@ -3,6 +3,7 @@ from decouple import config
 from multiprocessing import Process, Manager
 import scripty
 import json
+import requests
 
 deserialized_bucket = None
 lidar_salt = None
@@ -47,8 +48,8 @@ def main():
     print("bucket data and lidar_id---------------------------------", bucket_data[0])
     lidar_id = bucket_data[0][-1]
     lidar_salt = bucket_data[0][-2]
-    # print("lidar id --------------------------", lidar_id)
-
+    print("lidar id --------------------------", lidar_id)
+    print("lidar s3 file path------------------",lidar_salt)
     # bucket data and convert it into list 
     bucket_data_strings = [row[0] for row in bucket_data]
     deserialized_bucket = [json.loads(data) for data in bucket_data_strings]
@@ -89,6 +90,16 @@ def main():
 
     print("All processes completed")
     print("List of lidar files processed:", shared_list)
+
+
+    # Read lidar_data_id from data.json
+    with open('data.json', 'r') as json_file:
+        data = json.load(json_file)
+        randomId = data.get('randomId')
+    api_url = f'https://6u21epl08b.execute-api.us-east-1.amazonaws.com/dev/terminate-server?parameterName={randomId}'
+    response = requests.get(api_url)
+    print("server kill api finished--------------------------",response)
+
 
 if __name__ == "__main__":
     main()

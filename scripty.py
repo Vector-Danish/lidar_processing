@@ -9,6 +9,7 @@ from decouple import config
 # SECRET_KEY = config('SECRET_KEY')
 # REGION_NAME = config('REGION_NAME')
 # BUCKET_NAME = config("BUCKET_NAME")
+laz_file_path = config("FILE_PATH")
 FILE_PATH = "big_laz/"
 
 def breakLazFile(local_file_path, save_folder_name,bucket_data,lidar_salt):
@@ -21,6 +22,7 @@ def breakLazFile(local_file_path, save_folder_name,bucket_data,lidar_salt):
                     }
                 )
     client = boto3.client('s3', config=my_config,aws_access_key_id=bucket_data[0]["access_key_id"],aws_secret_access_key=bucket_data[0]["secret_key"])
+    print(bucket_data[0]["access_key_id"])
      
     if not os.path.exists(save_folder_name):
         os.makedirs(save_folder_name)
@@ -50,8 +52,17 @@ def breakLazFile(local_file_path, save_folder_name,bucket_data,lidar_salt):
 
             laz_name = filename
             data.write(os.path.join(save_folder_name, laz_name))
-            chunk_file_path = f"{save_folder_name}/{filename}"
-            client.upload_file(chunk_file_path, bucket_data[0]["name"], lidar_salt)
+            chunk_file_path = f"{laz_file_path}{filename}"
+            
+            print("chunk_file_path")
+            print(chunk_file_path)
+            print("bucket_dat")
+            print(bucket_data[0]["name"])
+            print("comple path")
+            print(f"testLidar/{lidar_salt}")
+
+            upload_url = client.upload_file(chunk_file_path, bucket_data[0]["name"], f"testLidar/{lidar_salt}/{filename}")
+            print("upload return of s3-----------------",upload_url)
 
             INCREMENT += 1
 
